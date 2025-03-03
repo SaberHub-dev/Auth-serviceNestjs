@@ -18,7 +18,7 @@ export class User {
         nullable: false,
         required: true,
         type: "string",
-        example: "John Sample",
+        example: "Saber Sample",
     })
     name: string;
 
@@ -54,11 +54,11 @@ export class User {
 
 
     @ApiProperty({
-        description: "User Role (admin, user)",
+        description: "User Role (admin, parent, staff)",
         nullable: false,
         required: true,
         type: "string",
-        example: "user",
+        example: "parent",
     })
     role: Role;
     

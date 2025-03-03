@@ -19,10 +19,15 @@ async function main() {
                 role: 'admin',
              },
             { 
-                name: 'User Name',
+                name: 'Parent Name',
                 email: 'p2@correo.com',
                 password: bcpass,
              },
+             { 
+              name: 'Staff Name',
+              email: 'p3@correo.com',
+              password: bcpass,
+           },
         ],
     });
 

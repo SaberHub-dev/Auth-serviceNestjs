@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Auth, GetUser } from 'src/auth/decorators';
 import { User } from './entities/user.entity';
 import { Role } from '@prisma/client';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @ApiBearerAuth()
 @ApiTags('Users')
@@ -49,7 +49,7 @@ export class UserController {
   @ApiResponse({status: 200, description: 'Ok', type: User})
   @ApiResponse({status: 401, description: 'Unauthorized'})             
   @ApiResponse({status: 500, description: 'Server error'})             //Swagger
-  @Auth(Role.admin, Role.user)
+  @Auth(Role.admin, Role.parent)
   findOne(@Param('id') id: string, @GetUser() user: User) {
     return this.userService.findOne("id", id, user);
   }
@@ -62,7 +62,7 @@ export class UserController {
   @ApiResponse({status: 200, description: 'Ok', type: User})
   @ApiResponse({status: 401, description: 'Unauthorized'})
   @ApiResponse({status: 500, description: 'Server error'})             //Swagger
-  @Auth(Role.admin, Role.user)
+  @Auth(Role.admin, Role.parent)
   findOneByEmail(@Param('email') email: string, @GetUser() user: User) {
     return this.userService.findOne("email", email, user);
   }
@@ -77,7 +77,7 @@ export class UserController {
   @ApiResponse({status: 400, description: 'Bad request'})             
   @ApiResponse({status: 401, description: 'Unauthorized'})             
   @ApiResponse({status: 500, description: 'Server error'})             //Swagger
-  @Auth(Role.admin, Role.user)
+  @Auth(Role.admin, Role.parent)
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @GetUser() user: User) {
     return this.userService.update("id", id, updateUserDto, user);
   }
@@ -91,7 +91,7 @@ export class UserController {
   @ApiResponse({status: 400, description: 'Bad request'})             
   @ApiResponse({status: 401, description: 'Unauthorized'})             
   @ApiResponse({status: 500, description: 'Server error'})             //Swagger
-  @Auth(Role.admin, Role.user)
+  @Auth(Role.admin, Role.parent)
   updateByEmail(@Param('email') email: string, @Body() updateUserDto: UpdateUserDto, @GetUser() user: User) {
     return this.userService.update("email", email, updateUserDto, user);
   }
@@ -105,7 +105,7 @@ export class UserController {
   @ApiResponse({status: 400, description: 'Bad request'})             
   @ApiResponse({status: 401, description: 'Unauthorized'})             
   @ApiResponse({status: 500, description: 'Server error'})             //Swagger
-  @Auth(Role.admin, Role.user)
+  @Auth(Role.admin, Role.parent)
   remove(@Param('id') id: string, @GetUser() user: User) {
     return this.userService.remove("id", id, user);
   }
@@ -119,7 +119,7 @@ export class UserController {
   @ApiResponse({status: 400, description: 'Bad request'})             
   @ApiResponse({status: 401, description: 'Unauthorized'})             
   @ApiResponse({status: 500, description: 'Server error'})             //Swagger
-  @Auth(Role.admin, Role.user)
+  @Auth(Role.admin, Role.parent)
   removeByEmail(@Param('email') email: string, @GetUser() user: User) {
     return this.userService.remove("email", email, user);
   }

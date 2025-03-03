@@ -1,10 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-
-import { IsEmail, IsOptional, IsString, Matches, MaxLength, MinLength, NotContains } from "class-validator";
-
+import { Role } from "@prisma/client";
+import { IsEmail, IsEnum, IsOptional, IsString, Matches, MaxLength, MinLength, NotContains } from "class-validator";
 
 export class RegisterUserDto {
-
     @ApiProperty({
         description: "Name",
         nullable: false,
@@ -16,7 +14,6 @@ export class RegisterUserDto {
     @MinLength(3)
     name: string;
 
-    
     @ApiProperty({
         description: "Email",
         uniqueItems: true,
@@ -27,8 +24,7 @@ export class RegisterUserDto {
     })
     @IsEmail()
     email: string;
-    
-    
+
     @ApiProperty({
         description: "Password: Min 6 characters, 1 uppercase, 1 lowercase and 1 number",
         nullable: false,
@@ -42,9 +38,9 @@ export class RegisterUserDto {
     @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/, {
         message: 'Password must contain at least one uppercase, one lowercase and one number',
     })
-    @NotContains(' ', { message: 'El password no debe contener espacios' }) 
+    @NotContains(' ', { message: 'El password no debe contener espacios' })
     password: string;
-    
+
     @ApiProperty({
         description: "Confirm Password, it must be the same as the password",
         nullable: false,
@@ -54,7 +50,6 @@ export class RegisterUserDto {
     })
     @IsString()
     passwordconf: string;
-    
 
     @ApiProperty({
         description: "User Avatar Image",
@@ -65,7 +60,10 @@ export class RegisterUserDto {
     })
     @IsString()
     @IsOptional()
-    image: string;
-    
+    image?: string; // Marked as optional
 
+    @ApiProperty({ example: "parent", enum: ['admin', 'staff', 'parent'], default: "parent" })
+    @IsEnum(['admin', 'staff', 'parent'])
+    @IsOptional()
+    role?: Role; // Marked as optional
 }

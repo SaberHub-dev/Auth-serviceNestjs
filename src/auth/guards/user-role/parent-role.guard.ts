@@ -7,7 +7,7 @@ import { User } from 'src/user/entities/user.entity';
 
 
 @Injectable()
-export class UserRoleGuard implements CanActivate {
+export class ParentRoleGuard implements CanActivate {
 
   constructor(
     private readonly reflector: Reflector   //Permite tener acceso a la informacion de los decoradores y la metadata de la request
@@ -24,11 +24,11 @@ export class UserRoleGuard implements CanActivate {
     if (!validRol || validRol.length === 0) return true;
 
     const req = context.switchToHttp().getRequest();
-    const user = req.user as User;
+    const parent = req.parent as User;
     
-    if (validRol.includes(user.role)) return true
+    if (validRol.includes(parent.role)) return true
 
-    throw new ForbiddenException(`${user.email} is not authorized for this resource.`)
+    throw new ForbiddenException(`${parent.email} is not authorized for this resource.`)
    
   }
 }
