@@ -14,6 +14,32 @@ import { User } from 'src/user/entities/user.entity';
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
+
+  @Post('forgot-password')
+@ApiOperation({
+    summary: 'FORGOT PASSWORD',
+    description: 'Public endpoint to request a password reset email.'
+})
+@ApiResponse({ status: 200, description: 'Reset link sent' })
+@ApiResponse({ status: 400, description: 'Bad request' })
+forgotPassword(@Body('email') email: string) {
+    return this.authService.forgotPassword(email);
+}
+
+@Post('reset-password')
+@ApiOperation({
+    summary: 'RESET PASSWORD',
+    description: 'Public endpoint to reset the password using a token.'
+})
+@ApiResponse({ status: 200, description: 'Password reset successfully' })
+@ApiResponse({ status: 400, description: 'Invalid or expired token' })
+resetPassword(
+    @Body('token') token: string,
+    @Body('newPassword') newPassword: string
+) {
+    return this.authService.resetPassword(token, newPassword);
+}
+
   @Post('register')
   @ApiOperation({
     summary: 'REGISTER',

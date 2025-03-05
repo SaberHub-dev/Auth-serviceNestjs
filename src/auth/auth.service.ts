@@ -1,6 +1,8 @@
 import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
+import * as crypto from 'crypto';
+import * as nodemailer from 'nodemailer';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -101,6 +103,87 @@ export class AuthService {
       user,
       accessToken: this.getJwtToken({ id: user.id }),
     };
+  }
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    this.logger.log(`POST: auth/forgot-password: Password reset requested for ${email}`);
+
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) {
+        throw new BadRequestException('User not found');
+    }
+
+    // ✅ Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 3600000); // Expires in 1 hour
+
+    // ✅ Store token in the database
+    await this.prisma.passwordResetToken.upsert({
+        where: { userId: user.id },
+        update: { token: resetToken, expiresAt },
+        create: { userId: user.id, token: resetToken, expiresAt },
+    });
+
+    // ✅ Send email with reset link
+    await this.sendResetEmail(user.email, resetToken);
+
+    return { message: 'Reset link sent to your email' };
+  }
+
+  private async sendResetEmail(email: string, token: string) {
+    const transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST,
+        port: Number(process.env.EMAIL_PORT),
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+    });
+
+    const resetLink = `http://yourfrontend.com/reset-password?token=${token}`;
+
+    const mailOptions = {
+        from: `"ProCare Support" <${process.env.EMAIL_FROM}>`,
+        to: email,
+        subject: 'Reset Your Password',
+        html: `
+            <p>Hello,</p>
+            <p>You requested a password reset. Click the link below to reset your password:</p>
+            <a href="${resetLink}" style="color: blue; text-decoration: none;">Reset Password</a>
+            <p>If you did not request this, please ignore this email.</p>
+            <p>Best regards,<br/>ProCare Team</p>
+        `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    this.logger.log(`POST: auth/forgot-password: Reset email sent to ${email}`);
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    this.logger.log(`POST: auth/reset-password: Reset password requested`);
+
+    const resetToken = await this.prisma.passwordResetToken.findUnique({
+        where: { token },
+        include: { user: true },
+    });
+
+    if (!resetToken || resetToken.expiresAt < new Date()) {
+        throw new BadRequestException('Invalid or expired token');
+    }
+
+    // ✅ Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // ✅ Update user's password
+    await this.prisma.user.update({
+        where: { id: resetToken.userId },
+        data: { password: hashedPassword },
+    });
+
+    // ✅ Delete the reset token after use
+    await this.prisma.passwordResetToken.delete({ where: { token } });
+
+    return { message: 'Password reset successfully' };
   }
 
   async refreshToken(user: User) {
